@@ -33,6 +33,7 @@ public class TypeScriptAngularClientCodegen extends AbstractTypeScriptClientCode
     public static final String SNAPSHOT = "snapshot";
     public static final String WITH_INTERFACES = "withInterfaces";
     public static final String NG_VERSION = "ngVersion";
+    public static final String AOT = "aot";
 
     protected String npmName = null;
     protected String npmVersion = "1.0.0";
@@ -57,6 +58,7 @@ public class TypeScriptAngularClientCodegen extends AbstractTypeScriptClientCode
         this.cliOptions.add(new CliOption(SNAPSHOT, "When setting this property to true the version will be suffixed with -SNAPSHOT.yyyyMMddHHmm", BooleanProperty.TYPE).defaultValue(Boolean.FALSE.toString()));
         this.cliOptions.add(new CliOption(WITH_INTERFACES, "Setting this property to true will generate interfaces next to the default class implementations.", BooleanProperty.TYPE).defaultValue(Boolean.FALSE.toString()));
         this.cliOptions.add(new CliOption(NG_VERSION, "The version of Angular. Default is '4.3'"));
+        this.cliOptions.add(new CliOption(AOT, "Produces a package ready for AOT compiling.", BooleanProperty.TYPE).defaultValue(Boolean.FALSE.toString()));
     }
 
     @Override
@@ -113,6 +115,14 @@ public class TypeScriptAngularClientCodegen extends AbstractTypeScriptClientCode
         additionalProperties.put("injectionToken", ngVersion.atLeast("4.0.0") ? "InjectionToken" : "OpaqueToken");
         additionalProperties.put("injectionTokenTyped", ngVersion.atLeast("4.0.0"));
         additionalProperties.put("useHttpClient", ngVersion.atLeast("4.3.0"));
+
+        // prepare for AOT compiling
+        if(additionalProperties.containsKey(AOT)) {
+            boolean withInterfaces = Boolean.parseBoolean(additionalProperties.get(AOT).toString());
+            if (withInterfaces) {
+                supportingFiles.add(new SupportingFile("tsconfig-aot.mustache", getIndexDirectory(), "tsconfig-aot.json"));
+            }
+        }
     }
 
     private void addNpmPackageGeneration() {
